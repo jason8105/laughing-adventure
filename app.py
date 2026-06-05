@@ -20,7 +20,7 @@ def instagram():
     response = requests.get(
         url,
         headers=headers,
-        params={"username": username}
+        params={"_jystn_dsilva_": username}
     )
 
     return jsonify(response.json())
