@@ -8,7 +8,7 @@ API_KEY = os.getenv("RAPIDAPI_KEY")
 
 @app.route("/instagram")
 def instagram():
-    username = request.args.get("_jystn_dsilva_")
+    username = request.args.get("username")
 
     url = "https://instagram-scraper-api1.p.rapidapi.com/v2/user_info_by_username"
 
@@ -20,7 +20,7 @@ def instagram():
     response = requests.get(
         url,
         headers=headers,
-        params={"_jystn_dsilva_": username}
+        params={"username": username}
     )
 
     return jsonify(response.json())
