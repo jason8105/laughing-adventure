@@ -1,39 +1,31 @@
 from flask import Flask, request, jsonify
-import requests
-import os
+from worker import process_job
+import uuid
 
 app = Flask(__name__)
 
-API_KEY = os.getenv("RAPIDAPI_KEY")
+jobs = {}
 
 @app.route("/")
 def home():
-    return "Instagram Username API is running!"
+    return "Bot running"
 
-@app.route("/instagram")
-def instagram():
-    username = request.args.get("username")
+@app.route("/bulk_submit", methods=["POST"])
+def bulk_submit():
+    data = request.json
+    links = data.get("links", [])
 
-    if not username:
-        return jsonify({"error": "Missing username parameter"}), 400
+    job_id = str(uuid.uuid4())
+    jobs[job_id] = {"status": "processing", "result": []}
 
-    response = requests.get(
-        "https://instagram-scraper-ai1.p.rapidapi.com/user/info_v2/",
-        headers={
-            "x-rapidapi-key": API_KEY,
-            "x-rapidapi-host": "instagram-scraper-ai1.p.rapidapi.com",
-            "Content-Type": "application/json"
-        },
-        params={"username": username}
-    )
+    process_job(job_id, links, jobs)
 
-    try:
-        return jsonify(response.json())
-    except Exception:
-        return jsonify({
-            "status_code": response.status_code,
-            "raw_response": response.text
-        })
+    return jsonify({"job_id": job_id})
+
+@app.route("/result/<job_id>")
+def result(job_id):
+    return jsonify(jobs.get(job_id, {"error": "not found"}))
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=10000)
